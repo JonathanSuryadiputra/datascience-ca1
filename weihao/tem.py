@@ -1,35 +1,3 @@
-path = '../datasets/'
-def getData(croType):
-  if croType=="BTC":
-    ori_df = pd.read_csv(f"{path}{croType}/gemini_BTCUSD_2015_1min.csv")
-    for item in range(2016, 2022):
-      df = pd.read_csv(f"{path}{croType}/gemini_BTCUSD_{item}_1min.csv")
-      new_df = pd.concat([ori_df, df], ignore_index=True)
-      data = new_df
-
-  elif croType=="ETH":
-    # Todo remove first line of CSV file
-    ori_df = pd.read_csv(f"{path}gemini_BTCUSD_2015_1min.csv")
-    for item in range(2016, 2022):
-      df = pd.read_csv(f"{path}/gemini_BTCUSD_{item}_1min.csv")
-      new_df = pd.concat([ori_df, df], ignore_index=True)
-      data = new_df
-
-  elif croType == "LTC":
-    # Todo remove first line of CSV file
-    ori_df = pd.read_csv(f"{path}gemini_BTCUSD_2015_1min.csv")
-    for item in range(2016, 2022):
-      df = pd.read_csv(f"{path}/gemini_BTCUSD_{item}_1min.csv")
-      new_df = pd.concat([ori_df, df], ignore_index=True)
-      data = new_df
-
-  df.index = df.index[::-1]
-  data = df.reindex(index=df.index[::-1])
-
-
-  return df
-
-
 import pandas as pd
 import numpy as np
 from darts import TimeSeries
@@ -40,11 +8,45 @@ warnings.filterwarnings('ignore')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import datetime as dt
+from prophet import Prophet
 
-# read CSV file
+path = '../datasets/'
+def getData(croType):
+  if croType=="BTC":
+    ori_df = pd.read_csv(f"{path}{croType}/gemini_BTCUSD_2015_1min.csv")
+    for item in range(2016, 2022):
+      df = pd.read_csv(f"{path}{croType}/gemini_BTCUSD_{item}_1min.csv")
+      new_df = pd.concat([ori_df, df], ignore_index=True)
+      ori_df = new_df
+    df = ori_df
+
+  elif croType=="ETH":
+    # Todo remove first line of CSV file
+    ori_df = pd.read_csv(f"{path}{croType}/gemini_BTCUSD_2016_1min.csv")
+    for item in range(2017, 2022):
+      df = pd.read_csv(f"{path}/gemini_BTCUSD_{item}_1min.csv")
+      new_df = pd.concat([ori_df, df], ignore_index=True)
+      ori_df = new_df
+    df = ori_df
+
+  elif croType == "LTC":
+    # Todo remove first line of CSV file
+    ori_df = pd.read_csv(f"{path}{croType}/gemini_BTCUSD_2018_1min.csv")
+    for item in range(2019, 2022):
+      df = pd.read_csv(f"{path}/gemini_BTCUSD_{item}_1min.csv")
+      new_df = pd.concat([ori_df, df], ignore_index=True)
+      ori_df = new_df
+    df = ori_df
+
+  df.index = df.index[::-1]
+  data = df.reindex(index=df.index[::-1])
+
+  return data
+
 
 ### replace by get Data
 data = getData("BTC")
+
 data_close = data['Close']
 data_close = data_close.values.reshape(len(data_close), 1)
 data_date = [None] * len(data['Date'])
@@ -52,6 +54,8 @@ for index, i in enumerate(data['Date']):
   data_date[index] = i[6:10] + i[3:5] + i[0:2]
 ticker_spacing = data_date
 ticker_spacing = 90 # 3 month
+
+breakpoint()
 
 #%%
 
@@ -87,7 +91,9 @@ plt.figure()
 plt.show()
 
 # FBprophet
-df = pd.read_csv("gemini_BTCUSD_day.csv", usecols = ['Date','Close'])
+#TODO which data? which df?
+df = getData("BTC")
+# df = ("gemini_BTCUSD_day.csv", usecols = ['Date','Close'])
 df.index = data.index[::-1]
 df = df.reindex(index=df.index[::-1])
 df_date = [None] * len(df['Date'])
@@ -96,7 +102,7 @@ for index, i in enumerate(df['Date']):
 df['Date'] = df_date
 df['Date']
 
-from prophet import Prophet
+
 df.rename(columns = {'Date':'ds', 'Close':'y' }, inplace = True)
 df.head()
 m = Prophet()
